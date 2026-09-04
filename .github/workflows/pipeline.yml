@@ -5,10 +5,41 @@ on:
         branches: [main]
 
 jobs:
-    teste:
-        runs-on: ubuntu-latest
+
+    teste_qualidade:
+        strategy:
+            matrix:
+                os: [ubuntu-latest , windows-latest, macos-latest]
+                python-version: ['3.10', '3.11', '3.12']
+
+        runs-on: ${{ matrix.os }}
 
         steps:
             - name: Baixar Código do Repositório
               uses: actions/checkout@v4
+
+            - name: Configurar Python
+              uses: actions/setup-python@v4
+              with:
+               python-version: ${{ matrix.python-version }}
+
+            - name: Instalar dependências
+              run: pip install -r requirements.txt
+
+            - name: Análise Estática (Linter)
+              run: flake8 .  
+
+            - name: Testes Unitários e Cobertura Mínima
+              run: pytest --cov=. --cov-fail-under=90   
+
+ 
+    deploy:
+        runs-on: ubuntu-latest
+        needs: teste_qualidade
+
+        steps:
+        - name: Simular Deploy
+          run: echo "Deploy realizado com sucesso!"
+
+
 
